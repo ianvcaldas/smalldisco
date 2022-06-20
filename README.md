@@ -1,6 +1,8 @@
 smalldisco
 ==========
 
+<img src="misc/logo.png" width="60">
+
 smalldisco does discovery of putative siRNA regions in the genome, as well as quantification of small RNA tails.
 
 
