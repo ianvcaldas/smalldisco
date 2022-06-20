@@ -1,0 +1,197 @@
+from pathlib import Path
+
+OUTDIR = Path(config["intermediate_dir"])
+FASTQDIR = Path(config["fastq_dir"])
+BAMDIR = Path(config["bam_dir"])
+INDEXPREFIX = OUTDIR/"align"/Path(config["genome"]).stem
+TAILORINDEXPREFIX = OUTDIR/"tail"/Path(config["genome"]).stem
+
+def sample_names():
+  if FASTQDIR.exists():
+    fastqsamples = [f.stem for f in FASTQDIR.iterdir() if f.suffix == ".fastq"]
+  else:
+    fastqsamples = []
+  if BAMDIR.exists():
+    bamsamples = [f.stem for f in BAMDIR.iterdir() if f.suffix == ".bam"]
+  else:
+    bamsamples = []
+  return list(set(fastqsamples + bamsamples))
+
+
+rule get_tailing:
+  input: expand(str(OUTDIR/"tail/tail-distributions/{sample}.tsv"), sample=sample_names())
+  output: config["tails_output"]
+  script: "scripts/merge-tables-of-tails.py"
+
+
+rule get_sample_tails:
+  input: OUTDIR/"tail/uniquely-mapped-tagged-reads/{sample}.sam"
+  output: OUTDIR/"tail/tail-distributions/{sample}.tsv"
+  script: "scripts/get-table-of-tails.py"
+
+
+rule get_uniquely_mapped_reads:
+  input: OUTDIR/"tail/tagged/{sample}_tagged.bam"
+  output: temp(OUTDIR/"tail/uniquely-mapped-tagged-reads/{sample}.sam")
+  shell:
+    "samtools view {input} | awk '$12 == \"NH:i:1\"' | grep \"YB:Z\" > {output}"
+
+def get_map_antisense(wildcards):
+  if config["tails_antisense_only"]:
+    return "-S"
+  else:
+    return ""
+
+rule tag_reads_with_mapped_loci:
+  """Produce a BAM alignment where each read is tagged with the region it maps to."""
+  input:
+    database = config["small_rna_reference"],
+    sample = OUTDIR/"tail/tailor/{sample}.bam"
+  output:
+    temp(OUTDIR/"tail/tagged/{sample}_tagged.bam")
+  params:
+    map_antisense = get_map_antisense
+  shell:
+    "bedtools tag -i {input.sample} {params.map_antisense} -files {input.database} -names > {output} ; "
+
+
+rule tailor_one_sample:
+  input:
+    fastq = FASTQDIR/"{sample}.fastq",
+    index_ran = TAILORINDEXPREFIX.parent/"index.log"
+  output:
+    sam = temp(OUTDIR/"tail/tailor/{sample}.sam"),
+    bam = temp(OUTDIR/"tail/tailor/{sample}.bam")
+  threads: 8
+  log: OUTDIR/"tail/tailor/{sample}.log"
+  params:
+    index = TAILORINDEXPREFIX,
+    tailor_command = config["tailor_command"],
+    tailor_min = int(config["tailor_min_prefix_match"])
+  shell:
+    "{params.tailor_command} map -l {params.tailor_min} -n {threads} -i {input.fastq} -p {params.index} -o {output.sam} &> {log} ; "
+    "samtools sort -@ {threads} -o {output.bam} {output.sam} ;"
+
+
+rule tailor_index:
+  input: config["genome"]
+  output: TAILORINDEXPREFIX.parent/"index.log"
+  threads: 4
+  params:
+    index = TAILORINDEXPREFIX,
+    tailor_command = config["tailor_command"]
+  shell:
+    "{params.tailor_command} build -i {input} -p {params.index} &> {output} ; "
+
+
+rule locate_sirna_regions:
+    """Create a database of sirna regions with unique names."""
+    input: OUTDIR/"sirna/sirna-regions-annotated.bed"
+    output: config["sirna_output"]
+    script: "scripts/clean-sirna-regions.py"
+
+
+rule intersect_sirna_and_exons:
+    input:
+        sirna_regions = OUTDIR/"sirna/putative-sirna-regions.bed",
+        exon_list = OUTDIR/"sirna/exon-list.bed"
+    output:
+        OUTDIR/"sirna/sirna-regions-annotated.bed"
+    shell:
+        "bedtools intersect -a {input.sirna_regions} -b {input.exon_list} -wo > {output} ; "
+
+
+rule find_putative_sirna_regions:
+    """Produce putative sirna regions by merging overlapping reads that map antisense to exons."""
+    input: OUTDIR/"sirna/all-samples_antisense-reads.bam"
+    output: OUTDIR/"sirna/putative-sirna-regions.bed"
+    params:
+        filter_threshold = config["min_reads_per_sirna"]
+    shell:
+        # Merge overlapping reads into putative regions.
+        "bedtools merge -c 1 -o count -i {input} > ${{TMPDIR}}/merged.bed ; "
+        # Filter merged BED file to regions with a minimum number of reads.
+        "awk '$4 >= {params.filter_threshold}' ${{TMPDIR}}/merged.bed > {output} ; "
+
+
+rule merge_antisense_reads_from_samples:
+    """Merge all BAMs with reads that map antisense to exons into one multi-sample BAM."""
+    input: expand(str(OUTDIR/"sirna/antisense-reads-samples/{sample}_antisense-reads.bam"), sample=sample_names())
+    output: temp(OUTDIR/"sirna/all-samples_antisense-reads.bam")
+    shell:
+        "samtools merge {output} {input} ; "
+
+    
+rule map_antisense_reads:
+    """Obtain reads from one sample mapped antisense to exons."""
+    input:
+        exons = OUTDIR/"sirna/exon-list.bed",
+        alignment = BAMDIR/"{sample}.bam"
+    output: temp(OUTDIR/"sirna/antisense-reads-samples/{sample}_antisense-reads.bam")
+    shell:
+        "samtools sort {input.alignment} > ${{TMPDIR}}/sorted.bam ; "
+        "bedtools intersect -S -a ${{TMPDIR}}/sorted.bam -b {input.exons} > {output} ; "
+
+
+rule remove_exon_overlaps:
+    """Produce exon list where regions that overlap on the same strand are
+    merged together, and regions of overlap across different strands are removed."""
+    input: OUTDIR/"sirna/exon-list-with-overlaps.bed"
+    output: OUTDIR/"sirna/exon-list.bed"
+    params:
+        min_region_size = config["min_sirna_size"]
+    shell:
+        # Sort input by chromosome and start position
+        "sort -k1,1 -k2,2n {input} > ${{TMPDIR}}/sorted.bed ; "
+        # Merge all overlapping features on the same strand first.
+        "bedtools merge -i ${{TMPDIR}}/sorted.bed -s -c 4,5,6,1 -o distinct,distinct,distinct,count > ${{TMPDIR}}/merged.bed ; "
+        # After this step, every possible overlap can only be across different strands.
+        # So now we remove the regions of overlap across strands.
+        # First, separate the merged features into the ones in the plus strand and the ones in the minus strand.
+        "awk '$6 == \"-\"' ${{TMPDIR}}/merged.bed > ${{TMPDIR}}/minus.bed ; "
+        "awk '$6 == \"+\"' ${{TMPDIR}}/merged.bed > ${{TMPDIR}}/plus.bed ; "
+        # The intersection of those are the areas where there is some overlap across strands.
+        "bedtools intersect -a ${{TMPDIR}}/minus.bed -b ${{TMPDIR}}/plus.bed > ${{TMPDIR}}/overlaps.bed ; "
+        # Finally, take those areas out.
+        "bedtools subtract -a ${{TMPDIR}}/merged.bed -b ${{TMPDIR}}/overlaps.bed > ${{TMPDIR}}/subtracted.bed ; "
+        # Filter database to remove tiny regions, then replace "," characters in the
+        # database by "+" characters such that read tagging preserves multi-region
+        # entries in the database.
+        "cat ${{TMPDIR}}/subtracted.bed | awk '($3 - $2) > {params.min_region_size}' |  tr ',' '+' > {output} ; "
+
+
+rule make_exon_list:
+    """Make a list of exon locations in the genome that could have a siRNA region."""
+    input: config["annotation"]
+    output: OUTDIR/"sirna/exon-list-with-overlaps.bed"
+    script: "scripts/make-exon-list.py"
+
+
+rule align_all_samples:
+  input: expand(BAMDIR/"{sample}.bam", sample=sample_names())
+
+rule align_one_sample:
+  input:
+    fastq = FASTQDIR/"{sample}.fastq",
+    index_ran = INDEXPREFIX.parent/"index.log"
+  output:
+    sam = temp(OUTDIR/"align/{sample}.sam"),
+    bam = temp(BAMDIR/"{sample}.bam")
+  threads: 8
+  log: OUTDIR/"align/hisat2_{sample}.log"
+  params:
+    index = INDEXPREFIX,
+    hisat2_command = config["hisat2_command"]
+  shell:
+    "{params.hisat2_command} -q -x {params.index} -U {input.fastq} -p {threads} -S {output.sam} --no-unal --dta --time &> {log} ; "
+    "samtools sort -@ {threads} -o {output.bam} {output.sam} ;"
+
+rule genome_index:
+  input: config["genome"]
+  output: INDEXPREFIX.parent/"index.log"
+  threads: 4
+  params:
+    index = INDEXPREFIX,
+    hisat2_build_command = config["hisat2_build_command"]
+  shell:
+    "{params.hisat2_build_command} -p {threads} -f {input} {params.index}  &> {output} ; "
