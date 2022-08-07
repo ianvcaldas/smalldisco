@@ -5,7 +5,7 @@ smalldisco
 
 smalldisco discovers putative siRNA regions in the genome, as well as quantification of small RNA tails.
 
-Check out our preprint at (https://www.biorxiv.org/content/10.1101/2022.07.15.500275v1).
+Check out our preprint at https://www.biorxiv.org/content/10.1101/2022.07.15.500275v1.
 
 ### Installation
 
