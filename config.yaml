@@ -31,19 +31,19 @@ intermediate_dir: "smalldisco-intermediate-output"
 
 # Which folder are the raw sample FASTQ files in? Make sure they all end in the
 # extension .fastq and are uncompresed.
-fastq_dir: "data/fastq"
+fastq_dir: "example-data/fastq"
 
 # Where is the reference genome in FASTA format?
-genome: "data/reference-genome.fa"
+genome: "example-data/c_elegans-chrom2.fa"
 
 # What commmands execute HISAT2 in this computer?
 # What command runs hisat2-build?
-hisat2_build_command: "/programs/HISAT2/bin/hisat2-build"
+hisat2_build_command: "hisat2-build"
 # What command runs hisat2?
-hisat2_command: "/programs/HISAT2/bin/hisat2"
+hisat2_command: "hisat2"
 
 # What folder should the resulting aligned BAM files be written to?
-bam_dir: "data/bam"
+bam_dir: "example-data/bam"
 
 
 # Localization of putative siRNA regions

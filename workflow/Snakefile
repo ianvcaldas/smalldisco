@@ -121,7 +121,7 @@ rule merge_antisense_reads_from_samples:
     shell:
         "samtools merge {output} {input} ; "
 
-    
+
 rule map_antisense_reads:
     """Obtain reads from one sample mapped antisense to exons."""
     input:
