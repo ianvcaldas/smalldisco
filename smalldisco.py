@@ -7,14 +7,13 @@ from pathlib import Path
 def get_command_line_arguments():
     parser = argparse.ArgumentParser("Locate siRNA regions and get small RNA tails.")
     parser.add_argument(
-        "mode", type=str, help="Analysis mode. Can be 'align', 'locate', 'tail', or 'run_all'."
+        "mode", type=str, help="Analysis mode. Can be 'locate', 'tail', or 'run_all'."
     )
     return parser.parse_known_args()
 
 
 def run_snakemake(my_args, extra_args):
     targets = {
-        "align": "align_all_samples",
         "sirna": "locate_sirna_regions",
         "tail": "get_tailing",
         "run_all": "get_tailing"

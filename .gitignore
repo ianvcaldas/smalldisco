@@ -1,3 +1,8 @@
+smalldisco-intermediate-output
+
 .DS_Store
 .snakemake
 example-data
+
+# Vim swap files
+*.swp

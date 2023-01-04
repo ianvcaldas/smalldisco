@@ -1,16 +1,12 @@
 from pathlib import Path
 
 OUTDIR = Path(config["intermediate_dir"])
-FASTQDIR = Path(config["fastq_dir"])
 BAMDIR = Path(config["bam_dir"])
-INDEXPREFIX = OUTDIR/"align"/Path(config["genome"]).stem
+FASTQDIR = OUTDIR/"tail"/"fastq"
 TAILORINDEXPREFIX = OUTDIR/"tail"/Path(config["genome"]).stem
 
 def sample_names():
-  if FASTQDIR.exists():
-    fastqsamples = [f.stem for f in FASTQDIR.iterdir() if f.suffix == ".fastq"]
-  else:
-    fastqsamples = []
+  fastqsamples = []
   if BAMDIR.exists():
     bamsamples = [f.stem for f in BAMDIR.iterdir() if f.suffix == ".bam"]
   else:
@@ -71,6 +67,13 @@ rule tailor_one_sample:
   shell:
     "{params.tailor_command} map -l {params.tailor_min} -n {threads} -i {input.fastq} -p {params.index} -o {output.sam} &> {log} ; "
     "samtools sort -@ {threads} -o {output.bam} {output.sam} ;"
+
+
+rule fastq_from_bam:
+  input: BAMDIR/"{sample}.bam"
+  output: FASTQDIR/"{sample}.fastq"
+  shell:
+    "samtools fastq {input} > {output}"
 
 
 rule tailor_index:
@@ -165,33 +168,3 @@ rule make_exon_list:
     input: config["annotation"]
     output: OUTDIR/"sirna/exon-list-with-overlaps.bed"
     script: "scripts/make-exon-list.py"
-
-
-rule align_all_samples:
-  input: expand(BAMDIR/"{sample}.bam", sample=sample_names())
-
-rule align_one_sample:
-  input:
-    fastq = FASTQDIR/"{sample}.fastq",
-    index_ran = INDEXPREFIX.parent/"index.log"
-  output:
-    sam = temp(OUTDIR/"align/{sample}.sam"),
-    bam = temp(BAMDIR/"{sample}.bam")
-  threads: 8
-  log: OUTDIR/"align/hisat2_{sample}.log"
-  params:
-    index = INDEXPREFIX,
-    hisat2_command = config["hisat2_command"]
-  shell:
-    "{params.hisat2_command} -q -x {params.index} -U {input.fastq} -p {threads} -S {output.sam} --no-unal --dta --time &> {log} ; "
-    "samtools sort -@ {threads} -o {output.bam} {output.sam} ;"
-
-rule genome_index:
-  input: config["genome"]
-  output: INDEXPREFIX.parent/"index.log"
-  threads: 4
-  params:
-    index = INDEXPREFIX,
-    hisat2_build_command = config["hisat2_build_command"]
-  shell:
-    "{params.hisat2_build_command} -p {threads} -f {input} {params.index}  &> {output} ; "
