@@ -4,6 +4,7 @@ OUTDIR = Path(config["intermediate_dir"])
 BAMDIR = Path(config["bam_dir"])
 FASTQDIR = OUTDIR/"tail"/"fastq"
 TAILORINDEXPREFIX = OUTDIR/"tail"/Path(config["genome"]).stem
+TMPDIR = str(OUTDIR/"tmp")
 
 def sample_names():
   fastqsamples = []
@@ -110,6 +111,8 @@ rule find_putative_sirna_regions:
     output: OUTDIR/"sirna/putative-sirna-regions.bed"
     params:
         filter_threshold = config["min_reads_per_sirna"]
+    resources:
+        tmpdir = TMPDIR
     shell:
         # Merge overlapping reads into putative regions.
         "bedtools merge -c 1 -o count -i {input} > ${{TMPDIR}}/merged.bed ; "
@@ -130,6 +133,8 @@ rule map_antisense_reads:
     input:
         exons = OUTDIR/"sirna/exon-list.bed",
         alignment = BAMDIR/"{sample}.bam"
+    resources:
+        tmpdir = TMPDIR
     output: temp(OUTDIR/"sirna/antisense-reads-samples/{sample}_antisense-reads.bam")
     shell:
         "samtools sort {input.alignment} > ${{TMPDIR}}/sorted.bam ; "
@@ -143,6 +148,8 @@ rule remove_exon_overlaps:
     output: OUTDIR/"sirna/exon-list.bed"
     params:
         min_region_size = config["min_sirna_size"]
+    resources:
+        tmpdir = TMPDIR
     shell:
         # Sort input by chromosome and start position
         "sort -k1,1 -k2,2n {input} > ${{TMPDIR}}/sorted.bed ; "

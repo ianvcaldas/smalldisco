@@ -1,0 +1,3 @@
+[submodule "Tailor"]
+	path = Tailor
+	url = https://github.com/jhhung/Tailor.git
