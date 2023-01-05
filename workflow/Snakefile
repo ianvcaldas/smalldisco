@@ -1,6 +1,6 @@
 from pathlib import Path
 
-OUTDIR = Path(config["intermediate_dir"])
+OUTDIR = Path(".smalldisco")
 BAMDIR = Path(config["bam_dir"])
 FASTQDIR = OUTDIR/"tail"/"fastq"
 TAILORINDEXPREFIX = OUTDIR/"tail"/Path(config["genome"]).stem

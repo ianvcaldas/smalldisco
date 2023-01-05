@@ -11,7 +11,6 @@
 # What folder should we write intermediate files to?
 # By default, we only keep logs and small output files in this directory, no large data files.
 # If they're not needed, the directory can be safely removed after the program runs.
-intermediate_dir: "smalldisco-intermediate-output"
 
 
 # Run everything

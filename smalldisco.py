@@ -1,40 +1,177 @@
-import argparse
 import subprocess
-import sys
+import shutil
+import json
 from pathlib import Path
 
+import click
 
-def get_command_line_arguments():
-    parser = argparse.ArgumentParser("Locate siRNA regions and get small RNA tails.")
-    parser.add_argument(
-        "mode", type=str, help="Analysis mode. Can be 'locate', 'tail', or 'run_all'."
-    )
-    return parser.parse_known_args()
+TEMPDIR = Path(".smalldisco")
+SIRNAFILE = "sirna.bed"
+TAILSFILE = "tails.tsv"
 
 
-def run_snakemake(my_args, extra_args):
-    targets = {
-        "sirna": "locate_sirna_regions",
-        "tail": "get_tailing",
-        "run_all": "get_tailing"
-    }
-    try:
-      target = targets[my_args.mode]
-    except KeyError:
-        raise Exception(f"Unrecognized mode: {my_args.mode}")
+@click.command()
+@click.argument("bamfolder", type=click.Path(exists=True))
+@click.option(
+    "-g",
+    "--genome",
+    help="Reference genome in FASTA format.",
+    type=click.Path(exists=True),
+    prompt="Reference genome in FASTA format",
+)
+@click.option(
+    "-a",
+    "--annotation",
+    help="Genome annotation file in GTF or GFF format.",
+    type=click.Path(exists=True),
+    prompt="Genome annotation file in GTF or GFF format",
+)
+@click.option(
+    "-k",
+    "--annotation_kind",
+    type=click.Choice(("GTF", "GFF"), case_sensitive=False),
+    default="GTF",
+    show_default=True,
+    help="Type of genome annotation.",
+)
+@click.option(
+    "-f",
+    "--feature",
+    default="CDS",
+    show_default=True,
+    help="Annotation feature to search for siRNAs in.",
+)
+@click.option(
+    "-r",
+    "sirna_min_reads",
+    default=10,
+    type=click.IntRange(min=1),
+    help="Minimum amount of overlapping reads to create a putative siRNA region.",
+    show_default=True,
+)
+@click.option(
+    "-s",
+    "sirna_min_size",
+    default=10,
+    type=click.IntRange(min=1),
+    help="Minimum size in base pairs of putative siRNA regions.",
+    show_default=True,
+)
+@click.option(
+    "--tails-antisense/--tails-all",
+    default=True,
+    help="Quantify tails for antisense reads only, or for all tails.",
+    show_default=True,
+)
+@click.option(
+    "--tailor_command",
+    type=click.Path(exists=True),
+    default="Tailor/bin/tailor_v1.1_linux_static",
+    help="Path to Tailor executable.",
+    show_default=True,
+)
+@click.option(
+    "--tailor-min-prefix",
+    type=click.IntRange(min=1),
+    default=18,
+    help="Minimum number of bp that must align to genome before a tail is detected (Tailor parameter).",
+    show_default=True,
+)
+@click.option(
+    "-c",
+    "--cores",
+    default=1,
+    show_default=True,
+    help="Number of parallel cores to use.",
+)
+@click.option(
+    "--snakefile",
+    type=click.Path(exists=True),
+    default="./workflow/Snakefile",
+    show_default=True,
+    help="Snakefile with the smalldisco pipeline.",
+)
+@click.option(
+    "--rmtemp/--no-rmtemp",
+    default=True,
+    show_default=True,
+    help="After running, delete the folder .smalldisco with intermediate files.",
+)
+def sirna(
+    bamfolder,
+    genome,
+    annotation,
+    annotation_kind,
+    feature,
+    sirna_min_reads,
+    sirna_min_size,
+    tails_antisense,
+    tailor_command,
+    tailor_min_prefix,
+    cores,
+    snakefile,
+    rmtemp,
+):
+    """Finds siRNA based on the alignments in BAMFOLDER."""
     command = [
         "snakemake",
-        "-c1",
+        "-c" + str(cores),
+        "--configfile",
+        str(TEMPDIR / "config.json"),
         "--snakefile",
-        "./workflow/Snakefile"
+        snakefile,
+        "locate_sirna_regions",
     ]
-    command.extend(extra_args)
-    command.append("--force")
-    command.append(target)
-    print(" ".join(command))
+    click.echo("Running smalldisco pipeline with command:\n" + " ".join(command))
+    Path.mkdir(TEMPDIR, exist_ok=True)
+    create_configfile(
+        bamfolder,
+        genome,
+        annotation,
+        annotation_kind,
+        feature,
+        sirna_min_reads,
+        sirna_min_size,
+        tails_antisense,
+        tailor_command,
+        tailor_min_prefix,
+    )
     subprocess.run(command)
+    if rmtemp:
+        shutil.rmtree(TEMPDIR)
+
+
+def create_configfile(
+    bamfolder,
+    genome,
+    annotation,
+    annotation_kind,
+    feature,
+    sirna_min_reads,
+    sirna_min_size,
+    tails_antisense,
+    tailor_command,
+    tailor_min_prefix,
+):
+    data = {
+        "bam_dir": bamfolder,
+        "genome": genome,
+        "annotation": annotation,
+        "annotation_kind": annotation_kind,
+        "sirna_source": feature,
+        "min_reads_per_sirna": sirna_min_reads,
+        "min_sirna_size": sirna_min_size,
+        "sirna_output": SIRNAFILE,
+        "small_rna_reference": SIRNAFILE,
+        "tails_antisense_only": tails_antisense,
+        "tailor_command": tailor_command,
+        "tailor_min_prefix_match": tailor_min_prefix,
+        "tails_output": TAILSFILE,
+    }
+    print(data)
+    with open(TEMPDIR / "config.json", "w") as f:
+        json.dump(data, f)
 
 
 if __name__ == "__main__":
-    my_args, extra_args = get_command_line_arguments()
-    run_snakemake(my_args, extra_args)
+    sirna()
