@@ -1,4 +1,5 @@
-smalldisco-intermediate-output
+sirna.bed
+tails.tsv
 
 .DS_Store
 .snakemake

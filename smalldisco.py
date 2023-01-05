@@ -1,3 +1,5 @@
+import sys
+import os
 import subprocess
 import shutil
 import json
@@ -6,8 +8,7 @@ from pathlib import Path
 import click
 
 TEMPDIR = Path(".smalldisco")
-SIRNAFILE = "sirna.bed"
-TAILSFILE = "tails.tsv"
+
 
 @click.group()
 @click.option(
@@ -18,23 +19,25 @@ TAILSFILE = "tails.tsv"
     help="Number of parallel cores to use.",
 )
 @click.option(
-    "--snakefile",
-    type=click.Path(exists=True),
-    default="./workflow/Snakefile",
-    show_default=True,
-    help="Snakefile with the smalldisco pipeline.",
-)
-@click.option(
     "--rmtemp/--no-rmtemp",
     default=True,
     show_default=True,
     help="After running, delete the folder .smalldisco with intermediate files.",
 )
-def smalldisco():
+def smalldisco(cores, rmtemp):
     pass
+
 
 @smalldisco.command()
 @click.argument("bamfolder", type=click.Path(exists=True))
+@click.option(
+    "-o",
+    "--out",
+    help="Output file name.",
+    type=click.Path(),
+    default="sirna.bed",
+    show_default=True,
+)
 @click.option(
     "-a",
     "--annotation",
@@ -73,50 +76,34 @@ def smalldisco():
     help="Minimum size in base pairs of putative siRNA regions.",
     show_default=True,
 )
+@click.pass_context
 def sirna(
+    context,
     bamfolder,
-    genome,
+    out,
     annotation,
     annotation_kind,
     feature,
     sirna_min_reads,
     sirna_min_size,
-    tails_antisense,
-    tailor_command,
-    tailor_min_prefix,
-    cores,
-    snakefile,
-    rmtemp,
 ):
     """Finds siRNA based on the alignments in BAMFOLDER."""
-    command = [
-        "snakemake",
-        "-c" + str(cores),
-        "--configfile",
-        str(TEMPDIR / "config.json"),
-        "--snakefile",
-        snakefile,
-        "locate_sirna_regions",
-    ]
-    click.echo("Running smalldisco pipeline with command:\n" + " ".join(command))
-    Path.mkdir(TEMPDIR, exist_ok=True)
-    create_configfile(
-        bamfolder,
-        genome,
-        annotation,
-        annotation_kind,
-        feature,
-        sirna_min_reads,
-        sirna_min_size,
-        tails_antisense,
-        tailor_command,
-        tailor_min_prefix,
-    )
-    subprocess.run(command)
-    if rmtemp:
-        shutil.rmtree(TEMPDIR)
+    params = context.parent.params.copy()
+    params.update(context.params)
+    run_smalldisco_pipeline(params, "sirna.smk", "siRNA discovery")
 
+
+@smalldisco.command()
+@click.argument("bedfile", type=click.Path(exists=True))
 @click.argument("bamfolder", type=click.Path(exists=True))
+@click.option(
+    "-o",
+    "--out",
+    help="Output file name.",
+    type=click.Path(),
+    default="tails.tsv",
+    show_default=True,
+)
 @click.option(
     "-g",
     "--genome",
@@ -144,61 +131,45 @@ def sirna(
     help="Minimum number of bp that must align to genome before a tail is detected (Tailor parameter).",
     show_default=True,
 )
-@click.option(
-    "-c",
-    "--cores",
-    default=1,
-    show_default=True,
-    help="Number of parallel cores to use.",
-)
-@click.option(
-    "--snakefile",
-    type=click.Path(exists=True),
-    default="./workflow/Snakefile",
-    show_default=True,
-    help="Snakefile with the smalldisco pipeline.",
-)
-@click.option(
-    "--rmtemp/--no-rmtemp",
-    default=True,
-    show_default=True,
-    help="After running, delete the folder .smalldisco with intermediate files.",
-)
-@smalldisco.command()
-def tail():
-    """Get tails of reads intersecting with specified genome regions"""
-    click.echo("Tails!")
-
-def create_configfile(
+@click.pass_context
+def tail(
+    context,
+    bedfile,
     bamfolder,
+    out,
     genome,
-    annotation,
-    annotation_kind,
-    feature,
-    sirna_min_reads,
-    sirna_min_size,
     tails_antisense,
     tailor_command,
     tailor_min_prefix,
 ):
-    data = {
-        "bam_dir": bamfolder,
-        "genome": genome,
-        "annotation": annotation,
-        "annotation_kind": annotation_kind,
-        "sirna_source": feature,
-        "min_reads_per_sirna": sirna_min_reads,
-        "min_sirna_size": sirna_min_size,
-        "sirna_output": SIRNAFILE,
-        "small_rna_reference": SIRNAFILE,
-        "tails_antisense_only": tails_antisense,
-        "tailor_command": tailor_command,
-        "tailor_min_prefix_match": tailor_min_prefix,
-        "tails_output": TAILSFILE,
-    }
-    print(data)
+    """Get tails of the reads in BAMFOLDER that intersect with the genome regions in BEDFILE."""
+    params = context.parent.params.copy()
+    params.update(context.params)
+    run_smalldisco_pipeline(params, "tail.smk", "read tail quantification")
+
+
+def run_smalldisco_pipeline(params, snakefile, description):
+    command = [
+        "snakemake",
+        "-c" + str(params["cores"]),
+        "--configfile",
+        str(TEMPDIR / "config.json"),
+        "--snakefile",
+        str(Path(__file__).parent / "workflow" / snakefile),
+    ]
+    click.echo(
+        f"Running smalldisco {description} pipeline with command:\n" + " ".join(command)
+    )
+    Path.mkdir(TEMPDIR, exist_ok=True)
+    create_configfile(params)
+    subprocess.run(command)
+    if params["rmtemp"]:
+        shutil.rmtree(TEMPDIR)
+
+
+def create_configfile(params):
     with open(TEMPDIR / "config.json", "w") as f:
-        json.dump(data, f)
+        json.dump(params, f)
 
 
 if __name__ == "__main__":

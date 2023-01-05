@@ -1,97 +1,16 @@
 from pathlib import Path
 
 OUTDIR = Path(".smalldisco")
-BAMDIR = Path(config["bam_dir"])
-FASTQDIR = OUTDIR/"tail"/"fastq"
-TAILORINDEXPREFIX = OUTDIR/"tail"/Path(config["genome"]).stem
+BAMDIR = Path(config["bamfolder"])
 TMPDIR = str(OUTDIR/"tmp")
 
 def sample_names():
-  fastqsamples = []
-  if BAMDIR.exists():
-    bamsamples = [f.stem for f in BAMDIR.iterdir() if f.suffix == ".bam"]
-  else:
-    bamsamples = []
-  return list(set(fastqsamples + bamsamples))
-
-
-rule get_tailing:
-  input: expand(str(OUTDIR/"tail/tail-distributions/{sample}.tsv"), sample=sample_names())
-  output: config["tails_output"]
-  script: "scripts/merge-tables-of-tails.py"
-
-
-rule get_sample_tails:
-  input: OUTDIR/"tail/uniquely-mapped-tagged-reads/{sample}.sam"
-  output: OUTDIR/"tail/tail-distributions/{sample}.tsv"
-  script: "scripts/get-table-of-tails.py"
-
-
-rule get_uniquely_mapped_reads:
-  input: OUTDIR/"tail/tagged/{sample}_tagged.bam"
-  output: temp(OUTDIR/"tail/uniquely-mapped-tagged-reads/{sample}.sam")
-  shell:
-    "samtools view {input} | awk '$12 == \"NH:i:1\"' | grep \"YB:Z\" > {output}"
-
-def get_map_antisense(wildcards):
-  if config["tails_antisense_only"]:
-    return "-S"
-  else:
-    return ""
-
-rule tag_reads_with_mapped_loci:
-  """Produce a BAM alignment where each read is tagged with the region it maps to."""
-  input:
-    database = config["small_rna_reference"],
-    sample = OUTDIR/"tail/tailor/{sample}.bam"
-  output:
-    temp(OUTDIR/"tail/tagged/{sample}_tagged.bam")
-  params:
-    map_antisense = get_map_antisense
-  shell:
-    "bedtools tag -i {input.sample} {params.map_antisense} -files {input.database} -names > {output} ; "
-
-
-rule tailor_one_sample:
-  input:
-    fastq = FASTQDIR/"{sample}.fastq",
-    index_ran = TAILORINDEXPREFIX.parent/"index.log"
-  output:
-    sam = temp(OUTDIR/"tail/tailor/{sample}.sam"),
-    bam = temp(OUTDIR/"tail/tailor/{sample}.bam")
-  threads: 8
-  log: OUTDIR/"tail/tailor/{sample}.log"
-  params:
-    index = TAILORINDEXPREFIX,
-    tailor_command = config["tailor_command"],
-    tailor_min = int(config["tailor_min_prefix_match"])
-  shell:
-    "{params.tailor_command} map -l {params.tailor_min} -n {threads} -i {input.fastq} -p {params.index} -o {output.sam} &> {log} ; "
-    "samtools sort -@ {threads} -o {output.bam} {output.sam} ;"
-
-
-rule fastq_from_bam:
-  input: BAMDIR/"{sample}.bam"
-  output: FASTQDIR/"{sample}.fastq"
-  shell:
-    "samtools fastq {input} > {output}"
-
-
-rule tailor_index:
-  input: config["genome"]
-  output: TAILORINDEXPREFIX.parent/"index.log"
-  threads: 4
-  params:
-    index = TAILORINDEXPREFIX,
-    tailor_command = config["tailor_command"]
-  shell:
-    "{params.tailor_command} build -i {input} -p {params.index} &> {output} ; "
-
+    return [f.stem for f in Path(config["bamfolder"]).iterdir() if f.suffix == ".bam"]
 
 rule locate_sirna_regions:
     """Create a database of sirna regions with unique names."""
     input: OUTDIR/"sirna/sirna-regions-annotated.bed"
-    output: config["sirna_output"]
+    output: config["out"]
     script: "scripts/clean-sirna-regions.py"
 
 
@@ -110,7 +29,7 @@ rule find_putative_sirna_regions:
     input: OUTDIR/"sirna/all-samples_antisense-reads.bam"
     output: OUTDIR/"sirna/putative-sirna-regions.bed"
     params:
-        filter_threshold = config["min_reads_per_sirna"]
+        filter_threshold = config["sirna_min_reads"]
     resources:
         tmpdir = TMPDIR
     shell:
@@ -147,7 +66,7 @@ rule remove_exon_overlaps:
     input: OUTDIR/"sirna/exon-list-with-overlaps.bed"
     output: OUTDIR/"sirna/exon-list.bed"
     params:
-        min_region_size = config["min_sirna_size"]
+        min_region_size = config["sirna_min_size"]
     resources:
         tmpdir = TMPDIR
     shell:
