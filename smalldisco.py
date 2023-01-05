@@ -9,16 +9,32 @@ TEMPDIR = Path(".smalldisco")
 SIRNAFILE = "sirna.bed"
 TAILSFILE = "tails.tsv"
 
-
-@click.command()
-@click.argument("bamfolder", type=click.Path(exists=True))
+@click.group()
 @click.option(
-    "-g",
-    "--genome",
-    help="Reference genome in FASTA format.",
-    type=click.Path(exists=True),
-    prompt="Reference genome in FASTA format",
+    "-c",
+    "--cores",
+    default=1,
+    show_default=True,
+    help="Number of parallel cores to use.",
 )
+@click.option(
+    "--snakefile",
+    type=click.Path(exists=True),
+    default="./workflow/Snakefile",
+    show_default=True,
+    help="Snakefile with the smalldisco pipeline.",
+)
+@click.option(
+    "--rmtemp/--no-rmtemp",
+    default=True,
+    show_default=True,
+    help="After running, delete the folder .smalldisco with intermediate files.",
+)
+def smalldisco():
+    pass
+
+@smalldisco.command()
+@click.argument("bamfolder", type=click.Path(exists=True))
 @click.option(
     "-a",
     "--annotation",
@@ -56,46 +72,6 @@ TAILSFILE = "tails.tsv"
     type=click.IntRange(min=1),
     help="Minimum size in base pairs of putative siRNA regions.",
     show_default=True,
-)
-@click.option(
-    "--tails-antisense/--tails-all",
-    default=True,
-    help="Quantify tails for antisense reads only, or for all tails.",
-    show_default=True,
-)
-@click.option(
-    "--tailor_command",
-    type=click.Path(exists=True),
-    default="Tailor/bin/tailor_v1.1_linux_static",
-    help="Path to Tailor executable.",
-    show_default=True,
-)
-@click.option(
-    "--tailor-min-prefix",
-    type=click.IntRange(min=1),
-    default=18,
-    help="Minimum number of bp that must align to genome before a tail is detected (Tailor parameter).",
-    show_default=True,
-)
-@click.option(
-    "-c",
-    "--cores",
-    default=1,
-    show_default=True,
-    help="Number of parallel cores to use.",
-)
-@click.option(
-    "--snakefile",
-    type=click.Path(exists=True),
-    default="./workflow/Snakefile",
-    show_default=True,
-    help="Snakefile with the smalldisco pipeline.",
-)
-@click.option(
-    "--rmtemp/--no-rmtemp",
-    default=True,
-    show_default=True,
-    help="After running, delete the folder .smalldisco with intermediate files.",
 )
 def sirna(
     bamfolder,
@@ -140,6 +116,58 @@ def sirna(
     if rmtemp:
         shutil.rmtree(TEMPDIR)
 
+@click.argument("bamfolder", type=click.Path(exists=True))
+@click.option(
+    "-g",
+    "--genome",
+    help="Reference genome in FASTA format.",
+    type=click.Path(exists=True),
+    prompt="Reference genome in FASTA format",
+)
+@click.option(
+    "--tails-antisense/--tails-all",
+    default=True,
+    help="Quantify tails for antisense reads only, or for all tails.",
+    show_default=True,
+)
+@click.option(
+    "--tailor_command",
+    type=click.Path(exists=True),
+    default="Tailor/bin/tailor_v1.1_linux_static",
+    help="Path to Tailor executable.",
+    show_default=True,
+)
+@click.option(
+    "--tailor-min-prefix",
+    type=click.IntRange(min=1),
+    default=18,
+    help="Minimum number of bp that must align to genome before a tail is detected (Tailor parameter).",
+    show_default=True,
+)
+@click.option(
+    "-c",
+    "--cores",
+    default=1,
+    show_default=True,
+    help="Number of parallel cores to use.",
+)
+@click.option(
+    "--snakefile",
+    type=click.Path(exists=True),
+    default="./workflow/Snakefile",
+    show_default=True,
+    help="Snakefile with the smalldisco pipeline.",
+)
+@click.option(
+    "--rmtemp/--no-rmtemp",
+    default=True,
+    show_default=True,
+    help="After running, delete the folder .smalldisco with intermediate files.",
+)
+@smalldisco.command()
+def tail():
+    """Get tails of reads intersecting with specified genome regions"""
+    click.echo("Tails!")
 
 def create_configfile(
     bamfolder,
@@ -174,4 +202,4 @@ def create_configfile(
 
 
 if __name__ == "__main__":
-    sirna()
+    smalldisco()
