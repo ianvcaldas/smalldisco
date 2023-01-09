@@ -126,7 +126,7 @@ def sirna(
     "--tailor-min-prefix",
     type=click.IntRange(min=1),
     default=18,
-    help="Minimum number of bp that must align to genome before a tail is detected (Tailor parameter).",
+    help="Minimum number of base pairs matching exactly in a read alignment before a tail can start. Equivalent to Tailor's '-l' command-line parameter.",
     show_default=True,
 )
 @click.pass_context
