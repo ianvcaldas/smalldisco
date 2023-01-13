@@ -9,42 +9,51 @@ Check out our preprint at https://www.biorxiv.org/content/10.1101/2022.07.15.500
 
 ### Installation
 
-smalldisco is implemented as a [Snakemake](https://snakemake.readthedocs.io/en/stable/) workflow. All of its dependencies are listed in the `environment.yaml` file.
+Installation steps:
 
-We recommend using the [conda package manager](https://docs.conda.io/en/latest/) to install requirements and run the program. To create a new conda environment called `smalldisco` with all the dependencies, run:
+1. Clone the smalldisco repository
+2. Install Tailor
+3. Create a conda environment for running smalldisco
 
-    conda env create -f environment.yaml
+First, clone this repository to your machine:
 
-You can then activate the environment with `conda activate smalldisco`, run the program, and deactivate the environment with `conda deactivate` when you're done.
+```console
+$ git clone https://github.com/ianvcaldas/smalldisco.git
+$ cd smalldisco
+```
 
-Check the [conda documentation](https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html) for more information on conda environments.
+Smalldisco depends on the [Tailor](https://github.com/jhhung/Tailor) program for detecting read tails. By default, the Tailor repository is set up as a [submodule](https://git-scm.com/book/en/v2/Git-Tools-Submodules) of smalldisco. To initialize it, run this command from within the smalldisco folder:
 
+```console
+$ git submodule update --init
+```
 
-### Running
+This will clone the Tailor repository as a folder. If you're running on Linux, an executable binary is available in `Tailor/bin/tailor_v1.1_linux_static`. If you're running on a different operating system, you will have to compile Tailor from source yourself; see its documentation for instructions.
 
-To run, first you need to set up your analysis. This is done in the `config.yaml`, and we recommend following the instructions in that file. After the configuration is done, run smalldisco with:
+To run smalldisco, you will need to install its software dependencies. We provide the file `environment.yaml` with all the dependencies, and we recommend using the [conda package manager](https://docs.conda.io/en/latest/) to install them in an isolated environment. You can then activate the environment with `conda activate smalldisco`, run the program, and deactivate the environment with `conda deactivate` when you're done. Check the [conda documentation](https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html) for more information on conda environments. To create a new conda environment called `smalldisco`, run:
 
-    python smalldisco.py <mode> --configfile=<config> [optional params]
-	
-Where `<mode>` can be one of:
+```console
+$ conda env create -f environment.yaml
+```
 
-* `align`: Use HISAT2 to align FASTQ input to a reference genome.
-* `sirna`: Produce a list of putative siRNA regions.
-* `tail`: Quantify read tails for a given list of sRNA regions.
-* `run_all`: Run all the above steps.
+To test that the installation worked, run the `--help` command in the conda environment. If you see the smalldisco help, starting with its usage string, the software has been installed successfully.
 
-Specifying a configuration file is mandatory. If you've filled in the provided configuration with the parameters of your analysis, run with `--configfile=config.yaml`.
+```console
+$ conda activate smalldisco
+$ python smalldisco.py --help
 
-The optional parameters are passed along to Snakemake; see below.
+Usage: smalldisco.py [OPTIONS] COMMAND [ARGS]...
+...
+```
 
+### Usage
 
-### Optional Snakemake parameters
+Use `python smalldisco.py --help` for main usage instructions. Smalldisco has two commands, `sirna` and `tail`, whose usage can be checked with `python smalldisco.py sirna --help` and `python smalldisco.py tail --help`, respectively.
 
-Since smalldisco is implemented as a Python script that invokes a Snakemake workflow, it benefits from all the advantages that Snakemake provides. It will continue a run from an intermediate set out outputs if those are available, and will pass along any extra parameters to the Snakemake command line.
+Behind the scenes, `smalldisco.py` is a wrapper script. Smalldisco is actually implemented as a [Snakemake](https://snakemake.readthedocs.io/en/stable/) pipeline. Workflow definition and helper scripts are in the `workflow` folder, and the program will not work if `smalldisco.py` and `workflow` are not in the same directory.
 
-All Snakemake command line options are described in its [documentation](https://snakemake.readthedocs.io/en/stable/executing/cli.html). The most useful ones for running smalldisco are:
+**Tailor integration:** When running the `tail` command, we assume by default that the path to the Tailor executable is `Tailor/bin/tailor_v1.1_linux_static`. This assumes that you are on Linux, are in the smalldisco repository, (e.g. `cd smalldisco`), and the Tailor submodule has been initialized as described in the installation section. If you are running smalldisco from a different folder, or have a custom Tailor installation, you must specify a path to a valid Tailor executable, for instance:
 
-* `-cX`: Run with `X` threads.
-* `-n`: Perform a dry run, indicating what steps of the pipeline would be run, without running them.
-* `--notemp`: Keep all intermediate output, including large BAM and SAM files made by the pipeline.
-* `--config KEY=VALUE`: Overwrite the value of the `KEY` parameter in the configuration file with `VALUE`.
+```console
+$ python smalldisco.py tail --tailor_command /usr/local/bin/tailor
+```
