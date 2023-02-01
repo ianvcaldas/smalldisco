@@ -20,7 +20,7 @@ TEMPDIR = Path(".smalldisco")
     "--rmtemp/--no-rmtemp",
     default=True,
     show_default=True,
-    help="After running, delete the folder .smalldisco with intermediate files.",
+    help="If enabled, delete the folder .smalldisco with intermediate files after running.",
 )
 def smalldisco(cores, rmtemp):
     pass
@@ -31,7 +31,7 @@ def smalldisco(cores, rmtemp):
 @click.option(
     "-o",
     "--out",
-    help="Output file name.",
+    help="Name of output file in BED format.",
     type=click.Path(),
     default="sirna.bed",
     show_default=True,
@@ -39,9 +39,9 @@ def smalldisco(cores, rmtemp):
 @click.option(
     "-a",
     "--annotation",
-    help="Genome annotation file in GTF or GFF format.",
+    help="Genome annotation file in either GTF or GFF format.",
     type=click.Path(exists=True),
-    prompt="Genome annotation file in GTF or GFF format",
+    prompt="Please provide a path to an annotation file in GTF or GFF format",
 )
 @click.option(
     "-k",
@@ -49,18 +49,19 @@ def smalldisco(cores, rmtemp):
     type=click.Choice(("GTF", "GFF"), case_sensitive=False),
     default="GTF",
     show_default=True,
-    help="Type of genome annotation.",
+    help="Format of genome annotation file.",
 )
 @click.option(
     "-f",
     "--feature",
     default="CDS",
     show_default=True,
-    help="Annotation feature to search for siRNAs in.",
+    help="Feature type in the annotation file assumed to contain siRNA regions.",
 )
 @click.option(
     "-r",
     "sirna_min_reads",
+    metavar="X",
     default=10,
     type=click.IntRange(min=1),
     help="Minimum amount of overlapping reads to create a putative siRNA region.",
@@ -69,9 +70,10 @@ def smalldisco(cores, rmtemp):
 @click.option(
     "-s",
     "sirna_min_size",
+    metavar="X",
     default=10,
     type=click.IntRange(min=1),
-    help="Minimum size in base pairs of putative siRNA regions.",
+    help="Minimum size, in base pairs, of a putative siRNA.",
     show_default=True,
 )
 @click.pass_context
@@ -85,7 +87,9 @@ def sirna(
     sirna_min_reads,
     sirna_min_size,
 ):
-    """Finds siRNA based on the alignments in BAMFOLDER."""
+    """Find siRNA regions from antisense reads.
+
+    This command generates putative siRNA regions based on .bam-formatted read alignment files in the folder BAMFOLDER."""
     params = context.parent.params.copy()
     params.update(context.params)
     run_smalldisco_pipeline(params, "sirna.smk", "siRNA discovery")
@@ -97,7 +101,7 @@ def sirna(
 @click.option(
     "-o",
     "--out",
-    help="Output file name.",
+    help="Name of output file, in TSV (tab-separated values) format.",
     type=click.Path(),
     default="tails.tsv",
     show_default=True,
@@ -107,23 +111,24 @@ def sirna(
     "--genome",
     help="Reference genome in FASTA format.",
     type=click.Path(exists=True),
-    prompt="Reference genome in FASTA format",
+    prompt="Please provide a reference genome in FASTA format",
 )
 @click.option(
     "--tails-antisense/--tails-all",
     default=True,
-    help="Quantify tails for antisense reads only, or for all tails.",
+    help="Whether to quantify tails for antisense reads only or for all reads.",
     show_default=True,
 )
 @click.option(
     "--tailor_command",
     type=click.Path(exists=True),
     default="Tailor/bin/tailor_v1.1_linux_static",
-    help="Path to Tailor executable.",
+    help="Path to Tailor binary executable.",
     show_default=True,
 )
 @click.option(
     "--tailor-min-prefix",
+    metavar="X",
     type=click.IntRange(min=1),
     default=18,
     help=(
@@ -143,7 +148,9 @@ def tail(
     tailor_command,
     tailor_min_prefix,
 ):
-    """Get tails of the reads in BAMFOLDER that intersect with the genome regions in BEDFILE."""
+    """Quantify tails of reads aligning to specified genome regions.
+
+    This command quantifies tails from read alignments in .bam format found in BAMFOLDER. Only reads that overlap with certain genome regions, specified in .bed format in BEDFILE, are considered."""
     params = context.parent.params.copy()
     params.update(context.params)
     run_smalldisco_pipeline(params, "tail.smk", "read tail quantification")
