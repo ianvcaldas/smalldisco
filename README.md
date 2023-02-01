@@ -36,17 +36,7 @@ To run smalldisco, you will need to install its software dependencies. They are 
 $ conda env create -f environment.yaml
 ```
 
-You can then activate the environment with `conda activate smalldisco`, run the program, and deactivate the environment with `conda deactivate` when you're done. Check the [conda documentation](https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html) for more information on conda environments.
-
-To test that smalldisco was installed correcly, you can run the `--help` command in the conda environment. If you see the smalldisco help, starting with its usage string, the software has been installed successfully.
-
-```console
-$ conda activate smalldisco
-$ python smalldisco.py --help
-
-Usage: smalldisco.py [OPTIONS] COMMAND [ARGS]...
-...
-```
+You can then activate the environment with `conda activate smalldisco`, run the program, and deactivate the environment with `conda deactivate` when you're done. You can also run a single command in the environment with `conda run -n smalldisco <command>`. Check the [conda documentation](https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html) for more information on conda environments.
 
 ### Usage
 
@@ -54,8 +44,19 @@ Use `python smalldisco.py --help` for main usage instructions. Smalldisco has tw
 
 Behind the scenes, smalldisco is actually implemented as a [Snakemake](https://snakemake.readthedocs.io/en/stable/) pipeline and `smalldisco.py` is just a wrapper script. The pipeline code and helper scripts are in the `workflow` folder, and the program will not work if `smalldisco.py` and `workflow` are not in the same directory.
 
-**Tailor integration:** When running the `tail` command, we assume by default that the path to the Tailor executable is `Tailor/bin/tailor_v1.1_linux_static`. This will work if you are on Linux, are in the smalldisco repository, (e.g. `cd smalldisco`), and the Tailor submodule has been initialized as described in the installation section. If you are running smalldisco from a different folder, or have a custom Tailor installation, you must specify a path to a valid Tailor executable, for instance:
+#### Tailor integration
+
+When running the `tail` command, we assume by default that the path to the Tailor executable is `Tailor/bin/tailor_v1.1_linux_static`. This will work if you are on Linux, are in the smalldisco repository, (e.g. `cd smalldisco`), and the Tailor submodule has been initialized as described in the installation section. If you are running smalldisco from a different folder, or have a custom Tailor installation, you must specify a path to a valid Tailor executable, for instance:
 
 ```console
 $ python smalldisco.py tail --tailor_command /usr/local/bin/tailor
 ```
+
+### Example
+
+This repository comes with example data in the `example` folder. To test that smalldisco is installed correctly, you can run a toy analysis with:
+
+```console
+$ bash example-run.sh
+```
+This should create two outputs: `example/sirna.bed` with locations of putative siRNA regions and `example/tails.tsv` with quantified read tails.

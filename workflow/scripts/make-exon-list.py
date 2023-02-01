@@ -45,7 +45,7 @@ attributes_df = attributes_df.pivot_table(
     index="index", columns="attribute", values="value", aggfunc=lambda x: ";".join(x)
 )
 
-data = annot.loc[annot.feature == snakemake.config["sirna_source"]].join(attributes_df)
+data = annot.loc[annot.feature == snakemake.config["feature"]].join(attributes_df)
 
 # Backup IDs in case getting them from the annotation fails
 backup_ids = pd.Series(

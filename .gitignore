@@ -1,9 +1,8 @@
-sirna.bed
-tails.tsv
+**/sirna.bed
+**/tails.tsv
 
 .DS_Store
 .snakemake
-example-data
 
 # Vim swap files
 *.swp
