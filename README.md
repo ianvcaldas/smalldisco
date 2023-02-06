@@ -1,7 +1,6 @@
 smalldisco
 ==========
-
-<img src="misc/logo.png" width="60">
+<img src="misc/logo2.png" width="100">
 
 
 
