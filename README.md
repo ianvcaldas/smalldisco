@@ -3,6 +3,8 @@ smalldisco
 
 <img src="misc/logo.png" width="60">
 
+<img src="misc/logo2.png" width="100">
+
 smalldisco discovers putative siRNA regions in the genome and quantifies tails of small RNA reads.
 
 Check out our preprint at https://www.biorxiv.org/content/10.1101/2022.07.15.500275v1 for details on how it works and examples of use cases.
