@@ -30,10 +30,10 @@ $ git submodule update --init
 
 This will clone the Tailor repository as a folder. If you're running on Linux, you should be all set: an executable binary is available in `Tailor/bin/tailor_v1.1_linux_static`. If you're running on a different operating system, however, you will have to compile it from source yourself. See the Tailor documentation for instructions on how to do that.
 
-To run smalldisco, you will need to install its software dependencies. They are listed in the file `environment.yaml`, and we recommend using the [conda package manager](https://docs.conda.io/en/latest/) to install them automatically from that file in an isolated environment. To create a new conda environment called `smalldisco`, run:
+To run smalldisco, you will need to install its software dependencies. They are listed in the file `environment.yaml`, which specifies a [conda](https://docs.conda.io/en/latest/) environment. We recommend using the  [mamba package mananger](https://mamba.readthedocs.io/) to install the environment instead of conda, as conda can sometimes fail when there are packages from conda-forge. To create a new conda environment called `smalldisco` using mamba, run:
 
 ```console
-$ conda env create -f environment.yaml
+$ mamba env create -f environment.yaml
 ```
 
 You can then activate the environment with `conda activate smalldisco`, run the program, and deactivate the environment with `conda deactivate` when you're done. You can also run a single command in the environment with `conda run -n smalldisco <command>`. Check the [conda documentation](https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html) for more information on conda environments.
