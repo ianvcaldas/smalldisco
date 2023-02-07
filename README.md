@@ -1,7 +1,11 @@
 smalldisco
 ==========
 
-<img src="misc/logo.png" width="100" img align="left"> <img src="misc/logo2.jpg" width="300" img align="right">
+<p float="left">
+  <img src="misc/logo.png" width="100" />
+  <img src="misc/logo2.jpg" width="300" /> 
+</p>
+
 
 smalldisco discovers putative siRNA regions in the genome and quantifies tails of small RNA reads.
 
