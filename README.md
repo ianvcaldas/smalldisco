@@ -62,7 +62,7 @@ Overall, to run both modes of smalldisco for a full siRNA identification and tai
 * your small RNA-seq  alignment BAM files of interest in one folder
   * You can use any workflow or mapping program to create your sRNA-seq BAM files for analysis. However, be sure that your small RNA reads are trimmed of 3’ adapters (see vignette for example).
 
-The required and optional arguments can be viewed with `python smalldisco.py sirna --help`
+The required and optional arguments can be viewed with `python smalldisco.py sirna --help`:
 
 ```
 Usage: smalldisco.py sirna [OPTIONS] BAMFOLDER
@@ -101,7 +101,7 @@ The user must define the feature type (`-f`) from which they wish to map antisen
   * The user can use the output BED file of putative siRNAs from `sirna` or a predefined BED file of another small RNA type.
   * For users interested in non-siRNA small RNAs (such as miRNAs or piRNAs): one way to create a bed file for a specific small RNA type is to obtain a GTF/GFF file for only that small RNA type or to filter a genomic GTF/GFF file for your small RNA type of interest. Then, a tool such as `gtf2bed` (part of BEDOPs; https://bedops.readthedocs.io/en/latest/index.html) can be used to convert the GTF/GFF to a BED file.
 
-The required and optional arguments can be viewed with `python smalldisco.py tail --help`
+The required and optional arguments can be viewed with `python smalldisco.py tail --help`:
 
 ```
 Usage: smalldisco.py tail [OPTIONS] BEDFILE BAMFOLDER
