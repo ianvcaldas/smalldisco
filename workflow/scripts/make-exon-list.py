@@ -51,6 +51,7 @@ data = annot.loc[annot.feature == snakemake.config["feature"]].join(attributes_d
 backup_ids = pd.Series(
     [f"{i}-{j}-{k}" for i, j, k in zip(data.chrom, data.start, data.end)],
     index=data.index,
+    dtype='object'
 )
 data[id_name].fillna(backup_ids, inplace=True)
 

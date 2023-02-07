@@ -25,7 +25,15 @@ rule get_uniquely_mapped_reads:
   input: OUTDIR/"tail/tagged/{sample}_tagged.bam"
   output: OUTDIR/"tail/uniquely-mapped-tagged-reads/{sample}.sam"
   shell:
-    "samtools view {input} | awk '$12 == \"NH:i:1\"' | grep \"YB:Z\" > {output}"
+    """
+    set +e
+    samtools view {input} | awk '$12 == \"NH:i:1\"' | grep \"YB:Z\" > {output}
+    exitcode=$?
+    if [ $exitcode -ne 0 ]; then
+        # If there are no reads mapping to a region of interest, produce empty output instead of erroring out.
+        samtools view -H {input} > {output}
+    fi
+    """
 
 def get_map_antisense(wildcards):
   if config["tails_antisense"]:
@@ -66,7 +74,7 @@ rule tailor_one_sample:
 
 rule fastq_from_bam:
   input: Path(config["bamfolder"])/"{sample}.bam"
-  output: FASTQDIR/"{sample}.fastq"
+  output: ensure(FASTQDIR/"{sample}.fastq", non_empty=True)
   shell:
     "samtools fastq {input} > {output}"
 
