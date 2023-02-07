@@ -62,6 +62,32 @@ Overall, to run both modes of smalldisco for a full siRNA identification and tai
 * Your small RNA-seq alignment alignment BAM files of interest in one folder
   * You can use any workflow or mapping program to create your sRNA-seq BAM files for analysis. However, be sure that your small RNA reads are trimmed of 3’ adapters (see vignette for example).
 
+The required and optional arguements can be viewed with `python smalldisco.py sirna --help`
+
+`Usage: smalldisco.py sirna [OPTIONS] BAMFOLDER
+
+  Find siRNA regions from antisense reads.
+
+  This command generates putative siRNA regions based on .bam-formatted read
+  alignment files in the folder BAMFOLDER.
+
+Options:
+  -o, --out PATH                  Name of output file in BED format.
+                                  [default: sirna.bed]
+  -a, --annotation PATH           Genome annotation file in either GTF or GFF
+                                  format.
+  -k, --annotation_kind [GTF|GFF]
+                                  Format of genome annotation file.  [default:
+                                  GTF]
+  -f, --feature TEXT              Feature type in the annotation file assumed
+                                  to contain siRNA regions.  [default: CDS]
+  -r X                            Minimum amount of overlapping reads to
+                                  create a putative siRNA region.  [default:
+                                  10; x>=1]
+  -s X                            Minimum size, in base pairs, of a putative
+                                  siRNA.  [default: 10; x>=1]
+  --help                          Show this message and exit.`
+
 The user must define the feature type (`-f`) from which they wish to map antisense reads to in their GTF/GFF file. For example, if one is interested in canonical siRNAs, the user could define their feature type as “CDS”. 
 
 #### `tail` mode
