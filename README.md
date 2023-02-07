@@ -56,10 +56,10 @@ Overall, to run both modes of smalldisco for a full siRNA identification and tai
 
 #### `sirna` mode
 
-`sirna` identifies genomic regions to which user-inputted reads map antisense. To this end, sirna requires:
-* GTF/GFF reference annotation file
+`sirna` identifies genomic regions to which user-provided reads map antisense. To this end, `sirna` requires:
+* a GTF/GFF reference annotation file
   * Please be sure that your GTF/GFF file follows the standard tab-separated, nine-column format (https://useast.ensembl.org/info/website/upload/gff.html). 
-* Your small RNA-seq alignment alignment BAM files of interest in one folder
+* your small RNA-seq  alignment BAM files of interest in one folder
   * You can use any workflow or mapping program to create your sRNA-seq BAM files for analysis. However, be sure that your small RNA reads are trimmed of 3’ adapters (see vignette for example).
 
 The required and optional arguments can be viewed with `python smalldisco.py sirna --help`
@@ -95,10 +95,11 @@ The user must define the feature type (`-f`) from which they wish to map antisen
 #### `tail` mode
 
 `tail` uses Tailor to identify non-templated nucleotides (i.e., tails) on the 3’ end of small RNA reads. This mode requires: 
-* FASTA genome reference file (-g)
-* Your small RNA-seq alignment alignment BAM files of interest in one folder
-* List of small RNA regions in BED format
-  * The user can use the output BED file of putative siRNAs from sirna or a predefined BED file of another small RNA type.
+* a FASTA genome reference file
+* your small RNA-seq alignment alignment BAM files of interest in one folder
+* a list of small RNA regions in BED format
+  * The user can use the output BED file of putative siRNAs from `sirna` or a predefined BED file of another small RNA type.
+  * For users interested in non-siRNA small RNAs (such as miRNAs or piRNAs): one way to create a bed file for a specific small RNA type is to obtain a GTF/GFF file for only that small RNA type or to filter a genomic GTF/GFF file for your small RNA type of interest. Then, a tool such as `gtf2bed` (part of BEDOPs; https://bedops.readthedocs.io/en/latest/index.html) can be used to convert the GTF/GFF to a BED file.
 
 The required and optional arguments can be viewed with `python smalldisco.py tail --help`
 
@@ -127,8 +128,6 @@ Options:
                                   command-line parameter.  [default: 18; x>=1]
   --help                          Show this message and exit.
 ```
-
-For users interested in non-siRNA small RNAs (such as miRNAs or piRNAs): one way to create a bed file for a specific small RNA type is to obtain a GTF/GFF file for only that small RNA type or to filter a genomic GTF/GFF file for your small RNA type of interest. Then, a tool such as `gtf2bed` (part of BEDOPs https://bedops.readthedocs.io/en/latest/index.html) can be used to convert the GTF/GFF to a BED file.
 
 #### Tailor integration
 
