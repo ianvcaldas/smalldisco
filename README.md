@@ -64,7 +64,8 @@ Overall, to run both modes of smalldisco for a full siRNA identification and tai
 
 The required and optional arguements can be viewed with `python smalldisco.py sirna --help`
 
-`Usage: smalldisco.py sirna [OPTIONS] BAMFOLDER
+```
+Usage: smalldisco.py sirna [OPTIONS] BAMFOLDER
 
   Find siRNA regions from antisense reads.
 
@@ -86,7 +87,8 @@ Options:
                                   10; x>=1]
   -s X                            Minimum size, in base pairs, of a putative
                                   siRNA.  [default: 10; x>=1]
-  --help                          Show this message and exit.`
+  --help                          Show this message and exit.
+  ```
 
 The user must define the feature type (`-f`) from which they wish to map antisense reads to in their GTF/GFF file. For example, if one is interested in canonical siRNAs, the user could define their feature type as “CDS”. 
 
