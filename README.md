@@ -2,7 +2,7 @@ smalldisco
 ==========
 
 <p float="left">
-  <img src="misc/logo.png" width="100" />
+  <img src="misc/logo.png" width="200" />
   <img src="misc/logo2.jpg" width="300" /> 
 </p>
 
