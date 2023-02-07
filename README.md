@@ -11,8 +11,6 @@ smalldisco discovers putative siRNA regions in the genome and quantifies tails o
 
 Check out our preprint at https://www.biorxiv.org/content/10.1101/2022.07.15.500275v1 for details on how it works and examples of use cases.
 
-You can also check out the smalldisco vingette located in the Wiki tab.
-
 ## Installation
 
 Installation steps:
