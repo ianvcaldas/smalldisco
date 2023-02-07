@@ -13,7 +13,7 @@ Check out our preprint at https://www.biorxiv.org/content/10.1101/2022.07.15.500
 
 You can also check out the smalldisco vingette located in the Wiki tab.
 
-### Installation
+## Installation
 
 Installation steps:
 
@@ -44,7 +44,7 @@ $ mamba env create -f environment.yaml
 
 You can then activate the environment with `conda activate smalldisco`, run the program, and deactivate the environment with `conda deactivate` when you're done. You can also run a single command in the environment with `conda run -n smalldisco <command>`. Check the [conda documentation](https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html) for more information on conda environments.
 
-### Usage
+## Usage
 
 Use `python smalldisco.py --help` for main usage instructions. Smalldisco has two commands, `sirna` and `tail`, whose usage can be checked with `python smalldisco.py sirna --help` and `python smalldisco.py tail --help`, respectively.
 
@@ -54,13 +54,13 @@ Overall, to run both modes of smalldisco for a full siRNA identification and tai
 
 <img src="misc/Workflow.png">
 
-#### `sirna` mode
+### `sirna` mode
 
 `sirna` identifies genomic regions to which user-provided reads map antisense. To this end, `sirna` requires:
 * a GTF/GFF reference annotation file
   * Please be sure that your GTF/GFF file follows the standard tab-separated, nine-column format (https://useast.ensembl.org/info/website/upload/gff.html). 
 * your small RNA-seq  alignment BAM files of interest in one folder
-  * You can use any workflow or mapping program to create your sRNA-seq BAM files for analysis. However, be sure that your small RNA reads are trimmed of 3’ adapters (see vignette for example).
+  * You can use any workflow or mapping program to create your sRNA-seq BAM files for analysis. However, be sure that your small RNA reads are trimmed of 3’ adapters (see the vignette in the "Example" section below).
 
 The required and optional arguments can be viewed with `python smalldisco.py sirna --help`:
 
@@ -92,7 +92,7 @@ Options:
 
 The user must define the feature type (`-f`) from which they wish to map antisense reads to in their GTF/GFF file. For example, if one is interested in canonical siRNAs, the user could define their feature type as “CDS”. 
 
-#### `tail` mode
+### `tail` mode
 
 `tail` uses Tailor to identify non-templated nucleotides (i.e., tails) on the 3’ end of small RNA reads. This mode requires: 
 * a FASTA genome reference file
@@ -129,7 +129,7 @@ Options:
   --help                          Show this message and exit.
 ```
 
-#### Tailor integration
+### Tailor integration
 
 When running the `tail` command, we assume by default that the path to the Tailor executable is `Tailor/bin/tailor_v1.1_linux_static`. This will work if you are on Linux, are in the smalldisco repository, (e.g. `cd smalldisco`), and the Tailor submodule has been initialized as described in the installation section. If you are running smalldisco from a different folder, or have a custom Tailor installation, you must specify a path to a valid Tailor executable, for instance:
 
@@ -137,11 +137,6 @@ When running the `tail` command, we assume by default that the path to the Tailo
 $ python smalldisco.py tail --tailor_command /usr/local/bin/tailor
 ```
 
-### Example
+## Example
 
-This repository comes with example data in the `example` folder. To test that smalldisco is installed correctly, you can run a toy analysis with:
-
-```console
-$ bash example-run.sh
-```
-This should create two outputs: `example/sirna.bed` with locations of putative siRNA regions and `example/tails.tsv` with quantified read tails.
+The [vignette](https://github.com/ianvcaldas/smalldisco/wiki/Smalldisco-vignette) showcases the use of smalldisco in an example real-life dataset.
