@@ -50,6 +50,19 @@ Use `python smalldisco.py --help` for main usage instructions. Smalldisco has tw
 
 Behind the scenes, smalldisco is actually implemented as a [Snakemake](https://snakemake.readthedocs.io/en/stable/) pipeline and `smalldisco.py` is just a wrapper script. The pipeline code and helper scripts are in the `workflow` folder, and the program will not work if `smalldisco.py` and `workflow` are not in the same directory.
 
+Overall, to run both modes of smalldisco for a full siRNA identification and tailing analysis - `sirna` and `tai`l - the user needs to provide their small RNA-seq alignment BAM files of interest, a GTF/GFF reference annotation file, and a FASTA genome reference file. Below, we outline the details of these modes.
+
+#### `sirna` mode
+
+`sirna` identifies genomic regions to which user-inputted reads map antisense. To this end, sirna requires:
+* GTF/GFF reference annotation file
+  * Please be sure that your GTF/GFF file follows the standard tab-separated, nine-column format (https://useast.ensembl.org/info/website/upload/gff.html). 
+* Your small RNA-seq alignment alignment BAM files of interest
+  * You can use any workflow or mapping program to create your sRNA-seq BAM files for analysis. However, be sure that your small RNA reads are trimmed of 3’ adapters (see vignette for example).
+
+The user must define the feature type (-f) from which they wish to map antisense reads to in their GTF/GFF file. For example, if one is interested in canonical siRNAs, the user could define their feature type as “CDS”. 
+
+
 #### Tailor integration
 
 When running the `tail` command, we assume by default that the path to the Tailor executable is `Tailor/bin/tailor_v1.1_linux_static`. This will work if you are on Linux, are in the smalldisco repository, (e.g. `cd smalldisco`), and the Tailor submodule has been initialized as described in the installation section. If you are running smalldisco from a different folder, or have a custom Tailor installation, you must specify a path to a valid Tailor executable, for instance:
