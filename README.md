@@ -50,7 +50,7 @@ Use `python smalldisco.py --help` for main usage instructions. Smalldisco has tw
 
 Behind the scenes, smalldisco is actually implemented as a [Snakemake](https://snakemake.readthedocs.io/en/stable/) pipeline and `smalldisco.py` is just a wrapper script. The pipeline code and helper scripts are in the `workflow` folder, and the program will not work if `smalldisco.py` and `workflow` are not in the same directory.
 
-Overall, to run both modes of smalldisco for a full siRNA identification and tailing analysis - `sirna` and `tai`l - the user needs to provide their small RNA-seq alignment BAM files of interest, a GTF/GFF reference annotation file, and a FASTA genome reference file. Below, we outline the details of these modes.
+Overall, to run both modes of smalldisco for a full siRNA identification and tailing analysis - `sirna` and `tail` - the user needs to provide their small RNA-seq alignment BAM files of interest, a GTF/GFF reference annotation file, and a FASTA genome reference file. Below, we outline the details of these modes.
 
 <img src="misc/Workflow.png">
 
