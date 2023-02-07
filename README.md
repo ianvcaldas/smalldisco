@@ -52,6 +52,8 @@ Behind the scenes, smalldisco is actually implemented as a [Snakemake](https://s
 
 Overall, to run both modes of smalldisco for a full siRNA identification and tailing analysis - `sirna` and `tai`l - the user needs to provide their small RNA-seq alignment BAM files of interest, a GTF/GFF reference annotation file, and a FASTA genome reference file. Below, we outline the details of these modes.
 
+<img src="misc/Workflow.png">
+
 #### `sirna` mode
 
 `sirna` identifies genomic regions to which user-inputted reads map antisense. To this end, sirna requires:
