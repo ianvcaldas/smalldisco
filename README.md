@@ -99,6 +99,8 @@ The user must define the feature type (`-f`) from which they wish to map antisen
   * The user can use the output BED file of putative siRNAs from `sirna` or a predefined BED file of another small RNA type.
   * For users interested in non-siRNA small RNAs (such as miRNAs or piRNAs): one way to create a bed file for a specific small RNA type is to obtain a GTF/GFF file for only that small RNA type or to filter a genomic GTF/GFF file for your small RNA type of interest. Then, a tool such as `gtf2bed` or `gff2bed` (part of BEDOPs; https://bedops.readthedocs.io/en/latest/index.html) can be used to convert the GTF/GFF to a BED file.
 
+NOTE: The chromosome annotation (II vs. chrII, for example) must match in the genome reference FASTA and small RNA regions BED files.
+
 The required and optional arguments can be viewed with `python smalldisco.py tail --help`:
 
 ```
