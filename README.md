@@ -145,7 +145,7 @@ Options:
   --help                          Show this message and exit.
 ```
 
-The tailing result will be in the `tails.tsv` file, which will list the identified 3` tail and the number of reads for each siRNA that contain that tail modification. If there are multiple samples within the bAM directory, the sample names will be specified in the last column.
+The tailing result will be in the `tails.tsv` file, which will list the identified 3` tail and the number of reads for each siRNA that contain that tail modification. If there are multiple samples within the BAM directory, the sample names will be specified in the last column.
 
 ```
 sirna_Dmel_CG10045_01	A	12	SRR23316511
