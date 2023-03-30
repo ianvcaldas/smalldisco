@@ -90,6 +90,22 @@ Options:
 
 The user must define the feature type (`-f`) from which they wish to map antisense reads to in their GTF/GFF file. For example, if one is interested in canonical siRNAs, the user could define their feature type as “CDS”. 
 
+The main output file from this run will the BED formatted file `sirna.bed`, which will include all the identified siRNA across the samples within the BAM directory with the source gene name as a suffix and the number of reads that support that identification of that siRNA in the last column.
+
+```
+# COLS:chrom start end sirna_name score strand num_reads
+NC_004354.4	124453	124632	sirna_Dmel_CG17636_01	.	-	812
+NC_004354.4	124642	124719	sirna_Dmel_CG17636_02	.	-	117
+NC_004354.4	124727	124801	sirna_Dmel_CG17636_03	.	-	55
+NC_004354.4	124808	125330	sirna_Dmel_CG17636_04	.	-	954
+NC_004354.4	125338	125383	sirna_Dmel_CG17636_05	.	-	17
+NC_004354.4	125470	126040	sirna_Dmel_CG17636_06	.	-	496
+NC_004354.4	126217	126281	sirna_Dmel_CG17636_07	.	-	37
+NC_004354.4	126336	126406	sirna_Dmel_CG17636_08	.	-	14
+NC_004354.4	749808	749840	sirna_Dmel_CG13362_01	.	-	15
+
+```
+
 ### `tail` mode
 
 `tail` uses Tailor to identify non-templated nucleotides (i.e., tails) on the 3’ end of small RNA reads. This mode requires: 
@@ -127,6 +143,27 @@ Options:
                                   can start. Equivalent to Tailor's '-l'
                                   command-line parameter.  [default: 18; x>=1]
   --help                          Show this message and exit.
+```
+
+The tailing result will be in the `tails.tsv` file, which will list the identified 3` tail and the number of reads for each siRNA that contain that tail modification. If there are multiple samples within the bAM directory, the sample names will be specified in the last column.
+
+```
+sirna_Dmel_CG10045_01	A	12	SRR23316511
+sirna_Dmel_CG10045_01	AAA	1	SRR23316511
+sirna_Dmel_CG10045_01	T	1	SRR23316511
+sirna_Dmel_CG10045_03	A	1	SRR23316511
+sirna_Dmel_CG10243_01	A	6	SRR23316511
+sirna_Dmel_CG10245_01	A	3	SRR23316511
+sirna_Dmel_CG10245_05	A	2	SRR23316511
+sirna_Dmel_CG10245_05	G	2	SRR23316511
+sirna_Dmel_CG10245_07	AA	1	SRR23316511
+sirna_Dmel_CG10245_07	C	1	SRR23316511
+sirna_Dmel_CG10245_07	T	2	SRR23316511
+sirna_Dmel_CG10254_03	A	1	SRR23316511
+sirna_Dmel_CG10254_04	C	1	SRR23316511
+sirna_Dmel_CG10279_01	A	1	SRR23316511
+sirna_Dmel_CG10375_01	A	4	SRR23316511
+
 ```
 
 ### Tailor integration
