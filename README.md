@@ -42,6 +42,13 @@ $ mamba env create -f environment.yaml
 
 You can then activate the environment with `conda activate smalldisco`, run the program, and deactivate the environment with `conda deactivate` when you're done. You can also run a single command in the environment with `conda run -n smalldisco <command>`. Check the [conda documentation](https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html) for more information on conda environments.
 
+If you prefer to avoid using conda or mamba, you can install the following dependencies through a method of your choice. The versions of each software used during smalldisco development are also indicated, and we recommend installing those versions for full reproducibility.
+
+- Python v3.9, with packages Numpy v1.21.0, Pandas 1.2.5, and Click v8.1.3
+- Snakemake v7.19.1
+- Bedtools v2.29.2
+- Samtools v1.11
+
 ## Usage
 
 Use `python smalldisco.py --help` for main usage instructions. Smalldisco has two commands, `sirna` and `tail`, whose usage can be checked with `python smalldisco.py sirna --help` and `python smalldisco.py tail --help`, respectively.
